@@ -1,0 +1,24 @@
+esalerugs.com:
+  locales:
+    - en_US
+  currencies:
+    - usd
+127.0.0.1:
+  locales:
+    - en_GB
+    - de_DE
+    - fr_FR
+    - nl_NL
+  currencies:
+    - eur
+    - franc
+irugs.sk:
+  locales:
+    - sk_SK
+  currencies:
+    - eur
+irugs.ca:
+  locales:
+    - en_US
+  currencies:
+    - cad
