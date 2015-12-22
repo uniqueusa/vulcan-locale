@@ -5,6 +5,10 @@ const (
 	acceptLanguageHeader string = "Accept-Language"
 	acceptCurrencyHeader string = "Accept-Currency"
 
+	//Defaults
+	defaultLanguage string = "en_US"
+	defaultCurrency string = "usd"
+
 	// Querystring Parameters
 	queryStringLanguage = "_l"
 	queryStringCurrency = "_c"

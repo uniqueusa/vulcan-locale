@@ -26,11 +26,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Runs the Locale specification for standard requests
 func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
-	re, _ := regexp.Compile("(.*):")
-	match := re.FindAllStringSubmatch(r.Host, -1)
-	domain := h.cfg.findDomain(match[0][1])
-	matchedLocale := "en_US"
-	matchedCurrency := "usd"
+	domain := h.getDomain(r.Host)
+	matchedLocale := defaultLanguage
+	matchedCurrency := defaultCurrency
 	if domain != nil {
 		query := r.URL.Query()
 		matchedLocale = domain.Locales[0]
@@ -48,13 +46,10 @@ func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(acceptCurrencyHeader, matchedCurrency)
 }
 
-func (h *Handler) extractLocaleInfo(r *http.Request) *localeRequest {
-
-	return &localeRequest{
-		locale:   r.Header.Get(acceptLanguageHeader),
-		currency: r.Header.Get(acceptCurrencyHeader),
-		hostName: r.URL.Host,
-	}
+func (h *Handler) getDomain(host string) *domain {
+	re, _ := regexp.Compile("(.*):")
+	match := re.FindAllStringSubmatch(host, -1)
+	return h.cfg.findDomain(match[0][1])
 }
 
 // Shares common functionality for prefilght and standard requests
