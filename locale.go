@@ -7,8 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
-	"github.com/mailgun/vulcand/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/mailgun/vulcand/plugin"
+	"github.com/vulcand/vulcand/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/vulcand/vulcand/plugin"
 )
 
 // Type represents the type of Vulcan middleware.
