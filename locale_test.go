@@ -1,7 +1,6 @@
 package locale
 
 import (
-	_ "fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
@@ -38,6 +37,7 @@ func setupTestServer(testfile string, host string) *httptest.Server {
 
 func setupTestRequest(method string, url string) *http.Request {
 	req, _ := http.NewRequest(method, url, nil)
+	req.Header.Set("Referer", "http://esalerugs.com")
 
 	return req
 }
@@ -65,7 +65,7 @@ func TestNew(t *testing.T) {
 	}
 
 	if cm == nil {
-		t.Errorf("Expected a CORS Middleware instance but got %+v", cm)
+		t.Errorf("Expected a Locale Middleware instance but got %+v", cm)
 	}
 
 	if cm.String() == "" {
@@ -281,6 +281,56 @@ func TestSpecifiedWithMultipleCurrencies(t *testing.T) {
 	defer server.Close()
 
 	req := setupTestRequest("GET", server.URL+"?_c=franc")
+	res, err := (&http.Client{}).Do(req)
+
+	if err != nil {
+		t.Errorf("Error while processing request: %+v", err)
+	}
+
+	code := res.StatusCode
+	if code != http.StatusOK {
+		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
+	}
+
+	resCurrency := res.Header.Get(acceptCurrencyHeader)
+	if resCurrency != currency {
+		t.Errorf("Expected Currency header %v but it was %v", currency, resCurrency)
+	}
+}
+
+func TestDefaultWhenSpecifiedLanguageNotInConfig(t *testing.T) {
+	t.Log("Set default language when the specified language is not in config")
+
+	language := "en_GB"
+	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	defer server.Close()
+
+	req := setupTestRequest("GET", server.URL+"?_l=es_SP")
+	res, err := (&http.Client{}).Do(req)
+
+	if err != nil {
+		t.Errorf("Error while processing request: %+v", err)
+	}
+
+	code := res.StatusCode
+	if code != http.StatusOK {
+		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
+	}
+
+	resLocale := res.Header.Get(acceptLanguageHeader)
+	if resLocale != language {
+		t.Errorf("Expected Language header %v but it was %v", language, resLocale)
+	}
+}
+
+func TestDefaultWhenSpecifiedCurrencyNotInConfig(t *testing.T) {
+	t.Log("Set defaul when specified currency is not in config")
+
+	currency := "eur"
+	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	defer server.Close()
+
+	req := setupTestRequest("GET", server.URL+"?_c=yen")
 	res, err := (&http.Client{}).Do(req)
 
 	if err != nil {

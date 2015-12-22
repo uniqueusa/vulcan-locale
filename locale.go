@@ -73,7 +73,7 @@ func validateConfig(domains map[string]*domain) (bool, error) {
 	}
 
 	for dom, cfg := range domains {
-		if dom == "" {
+		if dom == "" || cfg == nil {
 			return false, errors.New(errorConfigBadDomain)
 		}
 

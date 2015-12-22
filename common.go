@@ -5,6 +5,10 @@ const (
 	acceptLanguageHeader string = "Accept-Language"
 	acceptCurrencyHeader string = "Accept-Currency"
 
+	// Querystring Parameters
+	queryStringLanguage = "_l"
+	queryStringCurrency = "_c"
+
 	// Error Messages
 	errorConfigDomains    string = "No Domains supplied in config"
 	errorConfigBadDomain  string = "Invalid Domain supplied in config"
