@@ -1,6 +1,7 @@
 package locale
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 )
@@ -26,10 +27,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Runs the Locale specification for standard requests
 func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
-	domain := h.getDomain(r.Host)
+	domain := h.getDomain(r.Header.Get("Origin"))
+	if domain == nil {
+		return
+	}
 	matchedLocale := defaultLanguage
 	matchedCurrency := defaultCurrency
 	if domain != nil {
+		fmt.Println("** Domain found ** ")
 		query := r.URL.Query()
 		matchedLocale = domain.Locales[0]
 		matchedCurrency = domain.Currencies[0]
@@ -42,12 +47,13 @@ func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
 			matchedCurrency = cur
 		}
 	}
-	w.Header().Set(acceptLanguageHeader, matchedLocale)
-	w.Header().Set(acceptCurrencyHeader, matchedCurrency)
+	fmt.Printf("** setting header %v** ", matchedLocale)
+	r.Header.Set(acceptLanguageHeader, matchedLocale)
+	r.Header.Set(acceptCurrencyHeader, matchedCurrency)
 }
 
 func (h *Handler) getDomain(host string) *domain {
-	re, _ := regexp.Compile("(.*):")
+	re, _ := regexp.Compile("/?/?(.*):?")
 	match := re.FindAllStringSubmatch(host, -1)
 	return h.cfg.findDomain(match[0][1])
 }
