@@ -244,5 +244,24 @@ func TestDefaultWhenSpecifiedCurrencyNotInConfig(t *testing.T) {
 	defer server.Close()
 
 	testutils.Get(server.URL+"?_c=yen", testutils.Header("Origin", "127.0.0.1"))
+}
+
+func TestOriginNotSupplied(t *testing.T) {
+	t.Log("Call next when Origin not supplied, set to en_US")
+
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", func(w http.ResponseWriter, r *http.Request) {
+		val := r.Header.Get(acceptLanguageHeader)
+
+		if val != "" {
+			t.Errorf("Expected language header to be empty")
+		}
+		io.WriteString(w, "treasure")
+	})
+	defer server.Close()
+
+	res, _, _ := testutils.Get(server.URL)
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Expected quest to be ok")
+	}
 
 }

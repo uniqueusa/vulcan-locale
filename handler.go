@@ -27,8 +27,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Runs the Locale specification for standard requests
 func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("** Locale handling ** ")
 	domain := h.getDomain(r.Header.Get("Origin"))
+	if domain == nil {
+		return
+	}
 	matchedLocale := defaultLanguage
 	matchedCurrency := defaultCurrency
 	if domain != nil {
