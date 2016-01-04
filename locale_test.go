@@ -1,7 +1,9 @@
 package locale
 
 import (
+	"github.com/vulcand/vulcand/Godeps/_workspace/src/github.com/vulcand/oxy/testutils"
 	"gopkg.in/yaml.v2"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -24,15 +26,15 @@ func readConfigFile(testfile string) (map[string]*domain, error) {
 	return config, nil
 }
 
-func setupTestServer(testfile string, host string) *httptest.Server {
+func setupTestServer(testfile string, host string, handler http.HandlerFunc) *httptest.Server {
 	data, _ := readConfigFile(testfile)
 	config := map[string]*domain{host: data[host]}
-	locale, _ := New(config)
+	middleware, _ := New(config)
 
-	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	handler, _ := locale.NewHandler(next)
+	h := http.HandlerFunc(handler)
 
-	return httptest.NewServer(handler)
+	loc, _ := middleware.NewHandler(h)
+	return httptest.NewServer(loc)
 }
 
 func setupTestRequest(method string, url string) *http.Request {
@@ -40,6 +42,17 @@ func setupTestRequest(method string, url string) *http.Request {
 	req.Header.Set("Referer", "http://esalerugs.com")
 
 	return req
+}
+
+func setupTestHandler(header string, expectedResult string, t *testing.T) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		val := r.Header.Get(header)
+
+		if val != expectedResult {
+			t.Errorf("Expected %v to be %v", header, expectedResult)
+		}
+		io.WriteString(w, "treasure")
+	}
 }
 
 func TestSpecIsOK(t *testing.T) {
@@ -150,51 +163,27 @@ func TestFromCli(t *testing.T) {
 
 func TestLanguageHeader(t *testing.T) {
 	t.Log("Set language header when provided")
-
 	locale := "en_US"
-	server := setupTestServer("test1.yml", "127.0.0.1")
+	server := setupTestServer("test1.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, locale, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL)
-	res, err := (&http.Client{}).Do(req)
+	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
 
 	if err != nil {
 		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resLocale := res.Header.Get(acceptLanguageHeader)
-	if resLocale != locale {
-		t.Errorf("Expected Language header %v but it was %v", locale, resLocale)
 	}
 }
 
 func TestCurrencyHeader(t *testing.T) {
 	t.Log("Set currency header when provided")
-
 	currency := "usd"
-	server := setupTestServer("test1.yml", "127.0.0.1")
+	server := setupTestServer("test1.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL)
-	res, err := (&http.Client{}).Do(req)
+	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
 
 	if err != nil {
 		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resCurrency := res.Header.Get(acceptCurrencyHeader)
-	if resCurrency != currency {
-		t.Errorf("Expected Currency header %v but it was %v", currency, resCurrency)
 	}
 }
 
@@ -202,148 +191,58 @@ func TestDefaultWithMultipleLanguages(t *testing.T) {
 	t.Log("Set default when there are multiple languages")
 
 	language := "en_GB"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL)
-	res, err := (&http.Client{}).Do(req)
-
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resLocale := res.Header.Get(acceptLanguageHeader)
-	if resLocale != language {
-		t.Errorf("Expected Language header %v but it was %v", language, resLocale)
-	}
+	testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
 }
 
 func TestDefaultWithMultipleCurrencies(t *testing.T) {
 	t.Log("Set default when there are multiple Currencies")
 
 	currency := "eur"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL)
-	res, err := (&http.Client{}).Do(req)
-
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resCurrency := res.Header.Get(acceptCurrencyHeader)
-	if resCurrency != currency {
-		t.Errorf("Expected Currency header %v but it was %v", currency, resCurrency)
-	}
+	testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
 }
 
 func TestSpecifiedWithMultipleLanguages(t *testing.T) {
 	t.Log("Set specified language when there are multiple languages")
 
 	language := "fr_FR"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
+	testutils.Get(server.URL+"?_l=fr_FR", testutils.Header("Origin", "127.0.0.1"))
 
-	req := setupTestRequest("GET", server.URL+"?_l=fr_FR")
-	res, err := (&http.Client{}).Do(req)
-
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resLocale := res.Header.Get(acceptLanguageHeader)
-	if resLocale != language {
-		t.Errorf("Expected Language header %v but it was %v", language, resLocale)
-	}
 }
 
 func TestSpecifiedWithMultipleCurrencies(t *testing.T) {
 	t.Log("Set specified when there are multiple Currencies")
 
 	currency := "franc"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL+"?_c=franc")
-	res, err := (&http.Client{}).Do(req)
-
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resCurrency := res.Header.Get(acceptCurrencyHeader)
-	if resCurrency != currency {
-		t.Errorf("Expected Currency header %v but it was %v", currency, resCurrency)
-	}
+	testutils.Get(server.URL+"?_c=franc", testutils.Header("Origin", "127.0.0.1"))
 }
 
 func TestDefaultWhenSpecifiedLanguageNotInConfig(t *testing.T) {
 	t.Log("Set default language when the specified language is not in config")
 
 	language := "en_GB"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
-
-	req := setupTestRequest("GET", server.URL+"?_l=es_SP")
-	res, err := (&http.Client{}).Do(req)
-
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resLocale := res.Header.Get(acceptLanguageHeader)
-	if resLocale != language {
-		t.Errorf("Expected Language header %v but it was %v", language, resLocale)
-	}
+	testutils.Get(server.URL+"?_l=es_SP", testutils.Header("Origin", "127.0.0.1"))
 }
 
 func TestDefaultWhenSpecifiedCurrencyNotInConfig(t *testing.T) {
 	t.Log("Set defaul when specified currency is not in config")
 
 	currency := "eur"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1")
+	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	req := setupTestRequest("GET", server.URL+"?_c=yen")
-	res, err := (&http.Client{}).Do(req)
+	testutils.Get(server.URL+"?_c=yen", testutils.Header("Origin", "127.0.0.1"))
 
-	if err != nil {
-		t.Errorf("Error while processing request: %+v", err)
-	}
-
-	code := res.StatusCode
-	if code != http.StatusOK {
-		t.Errorf("Expected HTTP status %v but it was %v", http.StatusOK, code)
-	}
-
-	resCurrency := res.Header.Get(acceptCurrencyHeader)
-	if resCurrency != currency {
-		t.Errorf("Expected Currency header %v but it was %v", currency, resCurrency)
-	}
 }
