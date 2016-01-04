@@ -3,7 +3,6 @@ package locale
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 )
 
 // Handler executes Locale and handles the middleware chain to the next in stack
@@ -53,9 +52,7 @@ func (h *Handler) handleRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getDomain(host string) *domain {
-	re, _ := regexp.Compile("/?/?(.*):?")
-	match := re.FindAllStringSubmatch(host, -1)
-	return h.cfg.findDomain(match[0][1])
+	return h.cfg.findDomain(host)
 }
 
 // Shares common functionality for prefilght and standard requests
