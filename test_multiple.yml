@@ -1,9 +1,9 @@
-esalerugs.com:
+https://esalerugs.com:
   locales:
     - en_US
   currencies:
     - usd
-127.0.0.1:
+https://127.0.0.1:
   locales:
     - en_GB
     - de_DE
@@ -12,12 +12,12 @@ esalerugs.com:
   currencies:
     - eur
     - franc
-irugs.sk:
+https://irugs.sk:
   locales:
     - sk_SK
   currencies:
     - eur
-irugs.ca:
+https://irugs.ca:
   locales:
     - en_US
   currencies:

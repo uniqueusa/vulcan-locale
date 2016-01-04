@@ -164,10 +164,10 @@ func TestFromCli(t *testing.T) {
 func TestLanguageHeader(t *testing.T) {
 	t.Log("Set language header when provided")
 	locale := "en_US"
-	server := setupTestServer("test1.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, locale, t))
+	server := setupTestServer("test1.yml", "https://127.0.0.1", setupTestHandler(acceptLanguageHeader, locale, t))
 	defer server.Close()
 
-	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
+	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "https://127.0.0.1"))
 
 	if err != nil {
 		t.Errorf("Error while processing request: %+v", err)
@@ -177,10 +177,10 @@ func TestLanguageHeader(t *testing.T) {
 func TestCurrencyHeader(t *testing.T) {
 	t.Log("Set currency header when provided")
 	currency := "usd"
-	server := setupTestServer("test1.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
+	server := setupTestServer("test1.yml", "https://127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
+	_, _, err := testutils.Get(server.URL, testutils.Header("Origin", "https://127.0.0.1"))
 
 	if err != nil {
 		t.Errorf("Error while processing request: %+v", err)
@@ -191,29 +191,29 @@ func TestDefaultWithMultipleLanguages(t *testing.T) {
 	t.Log("Set default when there are multiple languages")
 
 	language := "en_GB"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
 
-	testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL, testutils.Header("Origin", "https://127.0.0.1"))
 }
 
 func TestDefaultWithMultipleCurrencies(t *testing.T) {
 	t.Log("Set default when there are multiple Currencies")
 
 	currency := "eur"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	testutils.Get(server.URL, testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL, testutils.Header("Origin", "https://127.0.0.1"))
 }
 
 func TestSpecifiedWithMultipleLanguages(t *testing.T) {
 	t.Log("Set specified language when there are multiple languages")
 
 	language := "fr_FR"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
-	testutils.Get(server.URL+"?_l=fr_FR", testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL+"?_l=fr_FR", testutils.Header("Origin", "https://127.0.0.1"))
 
 }
 
@@ -221,35 +221,35 @@ func TestSpecifiedWithMultipleCurrencies(t *testing.T) {
 	t.Log("Set specified when there are multiple Currencies")
 
 	currency := "franc"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	testutils.Get(server.URL+"?_c=franc", testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL+"?_c=franc", testutils.Header("Origin", "https://127.0.0.1"))
 }
 
 func TestDefaultWhenSpecifiedLanguageNotInConfig(t *testing.T) {
 	t.Log("Set default language when the specified language is not in config")
 
 	language := "en_GB"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptLanguageHeader, language, t))
 	defer server.Close()
-	testutils.Get(server.URL+"?_l=es_SP", testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL+"?_l=es_SP", testutils.Header("Origin", "https://127.0.0.1"))
 }
 
 func TestDefaultWhenSpecifiedCurrencyNotInConfig(t *testing.T) {
 	t.Log("Set defaul when specified currency is not in config")
 
 	currency := "eur"
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", setupTestHandler(acceptCurrencyHeader, currency, t))
 	defer server.Close()
 
-	testutils.Get(server.URL+"?_c=yen", testutils.Header("Origin", "127.0.0.1"))
+	testutils.Get(server.URL+"?_c=yen", testutils.Header("Origin", "https://127.0.0.1"))
 }
 
 func TestOriginNotSupplied(t *testing.T) {
 	t.Log("Call next when Origin not supplied, set to en_US")
 
-	server := setupTestServer("test_multiple.yml", "127.0.0.1", func(w http.ResponseWriter, r *http.Request) {
+	server := setupTestServer("test_multiple.yml", "https://127.0.0.1", func(w http.ResponseWriter, r *http.Request) {
 		val := r.Header.Get(acceptLanguageHeader)
 
 		if val != "" {

@@ -6,7 +6,7 @@ These headers are:
     Accept-Language
     Accept-Currency
 
-The values for the headers will be driven by the confiuration, which is a YAML file.
+The values for the headers will be driven by the configuration, which is a YAML file. These values will be mapped by domain, and that domain is expected to be in the `Origin` header of the request
 
 ## Install
 ```
